@@ -8,13 +8,14 @@
     Fonte: https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/censo-escolar/resultados
 '''
 
+from sys import argv
 import pandas as pd
 
 dataset = pd.read_csv('../data/microdados_ed_basica_2024.csv',
                       encoding='latin-1', sep=';')
 
 # Exibir dados 
-print(dataset.info())
+print('Informações do Dataset: {}'.format(dataset.info()))
 
 # Mas vemos que tem muitas colunas - 476
 print('Antes de filtrar as colunas importantes: {}'.format(len(dataset.columns)))
@@ -175,10 +176,17 @@ print('Antes de filtrar por escolas ativas: {}'.format(len(dataset))) # 215545
 dataset = dataset[dataset['TP_SITUACAO_FUNCIONAMENTO'] == 1]
 
 # Depois do filtro
-print('Depois de filtrar por escolas ativdas: {}'.format(len(dataset))) # 181065 - 34000 registro a menos
+print('Depois de filtrar por escolas ativas: {}'.format(len(dataset))) # 181065 - 34000 registro a menos
 
 # Como essa coluna TP_SITUAÇÃO não é mais necessaria, vamos removê-la
 dataset.drop(['TP_SITUACAO_FUNCIONAMENTO'], axis='columns', inplace=True)
+
+'''
+    Verificar escolas onde o numero matriculas - QT_MAT_BAS - é nulo
+'''
+#Retirando as escolas com QT_MAT_BAS nulo
+dataset = dataset[~dataset['QT_MAT_BAS'].isnull()]
+print('Número de escolas com QT_MAT_BAS não nulo: {}'.format(len(dataset)))
 
 '''
     Podemos dividir as escolas em públicas ou privada, uma vez que as colunas:
@@ -204,7 +212,7 @@ private_schools = dataset[~dataset['IN_MANT_ESCOLA_PRIVADA_EMP'].isnull()]
 '''
 print('Número escolas públicas: {}'.format(len(public_schools)))
 print('Número escolas privadas: {}'.format(len(private_schools)))
-print('Número de escolas: {}'.format(len(dataset)))
+#print('Número de escolas: {}'.format(len(dataset)))
 
 '''
     Após a separação, é possivel remover as colunas que não tem utilidade
@@ -222,7 +230,6 @@ private_schools.drop(['IN_VINCULO_SECRETARIA_EDUCACAO', 'IN_VINCULO_SEGURANCA_PU
     Agora que o tratamento dos dados terminou, podemos exportar as 
     tabelas de escolas publicas e privadas para que sejam analisadas.
 '''
-public_schools.to_csv('../data/public_school_Brazil_2024.csv', sep=';', 
-                      encoding='utf-8', index=False)
-private_schools.to_csv('../data/private_school_Brazil_2024.csv', sep=';',
-                       encoding='utf-8',  index=False)
+
+public_schools.to_csv('../data/public_school_Brazil_2024.csv', sep=';', encoding='utf-8', index=False)
+private_schools.to_csv('../data/private_school_Brazil_2024.csv', sep=';', encoding='utf-8',  index=False)
