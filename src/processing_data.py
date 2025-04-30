@@ -8,7 +8,6 @@
     Fonte: https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/censo-escolar/resultados
 '''
 
-from sys import argv
 import pandas as pd
 
 dataset = pd.read_csv('../data/microdados_ed_basica_2024.csv',
@@ -204,32 +203,43 @@ print('Número de escolas com QT_MAT_BAS não nulo: {}'.format(len(dataset)))
         - IN_MANT_ESCOLA_PRIVADA_S_FINS
         [Não são aplicável para escolas públicas, se for nulo, então é pública]
 '''
-public_schools = dataset[dataset['IN_MANT_ESCOLA_PRIVADA_EMP'].isnull()]
-private_schools = dataset[~dataset['IN_MANT_ESCOLA_PRIVADA_EMP'].isnull()]
+publicas = dataset[dataset['IN_MANT_ESCOLA_PRIVADA_EMP'].isnull()]
+privadas = dataset[~dataset['IN_MANT_ESCOLA_PRIVADA_EMP'].isnull()]
 
 '''
     Tamanho dos DataFrames:
 '''
-print('Número escolas públicas: {}'.format(len(public_schools)))
-print('Número escolas privadas: {}'.format(len(private_schools)))
+print('Número escolas públicas: {}'.format(len(publicas)))
+print('Número escolas privadas: {}'.format(len(privadas)))
 #print('Número de escolas: {}'.format(len(dataset)))
 
 '''
     Após a separação, é possivel remover as colunas que não tem utilidade
 '''
-public_schools.drop(['IN_MANT_ESCOLA_PRIVADA_EMP', 'IN_MANT_ESCOLA_PRIVADA_ONG',
+publicas.drop(['IN_MANT_ESCOLA_PRIVADA_EMP', 'IN_MANT_ESCOLA_PRIVADA_ONG',
                       'IN_MANT_ESCOLA_PRIVADA_OSCIP', 'IN_MANT_ESCOLA_PRIV_ONG_OSCIP',
                       'IN_MANT_ESCOLA_PRIVADA_SIND', 'IN_MANT_ESCOLA_PRIVADA_SIST_S',
                       'IN_MANT_ESCOLA_PRIVADA_S_FINS'], axis='columns', inplace=True)
 
-private_schools.drop(['IN_VINCULO_SECRETARIA_EDUCACAO', 'IN_VINCULO_SEGURANCA_PUBLICA',
+privadas.drop(['IN_VINCULO_SECRETARIA_EDUCACAO', 'IN_VINCULO_SEGURANCA_PUBLICA',
                        'IN_VINCULO_SECRETARIA_SAUDE', 'IN_VINCULO_OUTRO_ORGAO'],
                        axis='columns', inplace=True)
+
+
+'''
+    Exclui as escolas onde o numero de matriculas é nulo.
+    Temos:
+    Nas escolas publicas temos 137847 registros, e só 136844 com matriculas [~1000]
+    Nas escolas privadas temos 43218 registro, e só 42442 com matriculas [~770]
+
+    Vamos retirá-las...
+'''
+privadas = privadas[~privadas['QT_MAT_BAS'].isnull()]
+publicas = publicas[~publicas['QT_MAT_BAS'].isnull()]
 
 '''
     Agora que o tratamento dos dados terminou, podemos exportar as 
     tabelas de escolas publicas e privadas para que sejam analisadas.
 '''
-
-public_schools.to_csv('../data/public_school_Brazil_2024.csv', sep=';', encoding='utf-8', index=False)
-private_schools.to_csv('../data/private_school_Brazil_2024.csv', sep=';', encoding='utf-8',  index=False)
+publicas.to_csv('../data/public_school_Brazil_2024.csv', sep=';', encoding='utf-8', index=False)
+privadas.to_csv('../data/private_school_Brazil_2024.csv', sep=';', encoding='utf-8',  index=False)
